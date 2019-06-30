@@ -14,7 +14,7 @@ from .const import (
     TEST_RADIUS_IMPERIAL,
     TEST_RADIUS_METRIC,
 )
-from .fixtures.client import fixture_dump_json  # noqa
+from .fixtures.client import fixture_dump_json, fixture_dump_invalid_json  # noqa
 
 
 @pytest.mark.asyncio
@@ -48,8 +48,27 @@ async def test_dump(aresponses, event_loop, fixture_dump_json):  # noqa
 
 
 @pytest.mark.asyncio
+async def test_invalid_json(aresponses, event_loop, fixture_dump_invalid_json):  # noqa
+    """Test raising a proper exception when incorrect JSON is returned."""
+    aresponses.add(
+        "wwlln.net",
+        "/new/map/data/current.json",
+        "get",
+        aresponses.Response(text=fixture_dump_invalid_json, status=200),
+    )
+
+    async with aiohttp.ClientSession(loop=event_loop) as websession:
+        client = Client(websession)
+
+        with pytest.raises(RequestError):
+            await client.within_radius(
+                TEST_LATITUDE, TEST_LONGITUDE, TEST_RADIUS_METRIC
+            )
+
+
+@pytest.mark.asyncio
 async def test_invalid_unit(aresponses, event_loop, fixture_dump_json):  # noqa
-    """Test raising a proper except when an incorrect radius unit is used."""
+    """Test raising a proper exception when an incorrect radius unit is used."""
     aresponses.add(
         "wwlln.net",
         "/new/map/data/current.json",

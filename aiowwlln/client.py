@@ -1,4 +1,6 @@
 """Define a client to interact with the WWLLN."""
+import json
+
 from aiocache import cached
 from aiohttp import ClientSession, client_exceptions
 
@@ -49,6 +51,8 @@ class Client:
                 raise RequestError(
                     "Error requesting data from {0}: {1}".format(url, err)
                 ) from None
+            except json.decoder.JSONDecodeError:
+                raise RequestError("Invalid JSON found from {0}".format(url))
 
     async def within_radius(
         self, latitude: float, longitude: float, radius: float, *, unit: str = "metric"

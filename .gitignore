@@ -4,4 +4,4 @@
 Pipfile.lock
 aiowwlln.egg-info
 coverage.xml
-tags
+tags*

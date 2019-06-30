@@ -16,3 +16,4 @@ twine = "*"
 
 [packages]
 aiohttp = "*"
+aiocache = "*"

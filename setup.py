@@ -24,7 +24,8 @@ VERSION = None
 
 # What packages are required for this module to be executed?
 REQUIRED = [  # type: ignore
-    "aiohttp"
+    "aiocache",
+    "aiohttp",
 ]
 
 # The rest you shouldn't have to touch too much :)

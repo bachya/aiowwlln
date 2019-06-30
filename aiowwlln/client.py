@@ -1,10 +1,13 @@
 """Define a client to interact with the WWLLN."""
+from aiocache import cached
 from aiohttp import ClientSession, client_exceptions
 
 from .errors import RequestError
 from .helpers.geo import get_nearest_by_coordinates, haversine
 
 DATA_URL = "http://wwlln.net/new/map/data/current.json"
+
+DEFAULT_CACHE_SECONDS = 60
 
 
 class Client:
@@ -14,6 +17,7 @@ class Client:
         """Initialize."""
         self._websession = websession
 
+    @cached(ttl=DEFAULT_CACHE_SECONDS)
     async def dump(self) -> dict:
         """Return raw lightning strike data from the WWLLN."""
         return await self.request("get", DATA_URL)

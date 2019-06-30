@@ -9,7 +9,7 @@
 [![Say Thanks](https://img.shields.io/badge/SayThanks-!-1EAEDB.svg)](https://saythanks.io/to/bachya)
 
 `aiowwlln` is a simple, `asyncio`-driven Python library for retrieving information on
-lightning strikes from
+lightning strikes from
 [the World Wide Lightning Location Network (WWLLNN)](http://wwlln.net/).
 
 **NOTE:** This library is built on an unofficial API; therefore, it may stop working at
@@ -77,7 +77,7 @@ async def main() -> None:
 
         # Get strike data within a 50 km radius around a set of coordinates:
         await client.within_radius(
-            56.1621538, 92.2333561, 50
+            56.1621538, 92.2333561, 50, unit="metric"
         )
 
         # Get strike data within a 10 mile radius around a set of coordinates:

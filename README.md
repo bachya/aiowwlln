@@ -9,7 +9,7 @@
 [![Say Thanks](https://img.shields.io/badge/SayThanks-!-1EAEDB.svg)](https://saythanks.io/to/bachya)
 
 `aiowwlln` is a simple, `asyncio`-driven Python library for retrieving information on
-lightning strikes from
+lightning strikes from
 [the World Wide Lightning Location Network (WWLLNN)](http://wwlln.net/).
 
 **NOTE:** This library is built on an unofficial API; therefore, it may stop working at
@@ -34,7 +34,63 @@ run on Python 3.5 will fail.
 
 # Usage
 
-Coming soon!
+`aiowwlln` starts within an
+[aiohttp](https://aiohttp.readthedocs.io/en/stable/) `ClientSession`:
+
+```python
+import asyncio
+
+from aiohttp import ClientSession
+
+from aiowwlln import Client
+
+
+async def main() -> None:
+    """Create the aiohttp session and run the example."""
+    async with ClientSession() as websession:
+        # YOUR CODE HERE
+
+
+asyncio.get_event_loop().run_until_complete(main())
+```
+
+Create a client, initialize it, then get to it:
+
+```python
+import asyncio
+
+from aiohttp import ClientSession
+
+from aiowwlln import Client
+
+
+async def main() -> None:
+    """Create the aiohttp session and run the example."""
+    async with ClientSession() as websession:
+        client = aiowwlln.Client(websession)
+
+        # Create a client:
+        client = Client(websession)
+
+        # Get all strike data:
+        await client.dump()
+
+        # Get strike data within a 50 km radius around a set of coordinates:
+        await client.within_radius(
+            56.1621538, 92.2333561, 50
+        )
+
+        # Get strike data within a 10 mile radius around a set of coordinates:
+        await client.within_radius(
+            56.1621538, 92.2333561, 10, unit="imperial"
+        )
+
+        # Get the nearest strike to a set of coordinates:
+        await client.nearest(56.1621538, 92.2333561)
+
+
+asyncio.get_event_loop().run_until_complete(main())
+```
 
 # Contributing
 

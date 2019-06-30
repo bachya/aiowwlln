@@ -1,0 +1,6 @@
+[run]
+source = aiowwlln
+
+omit =
+    aiowwlln/__version__.py
+

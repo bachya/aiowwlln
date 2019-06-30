@@ -1,4 +1,4 @@
-# ⚡️ aiowwlln: A simple, asyncio-driven Python3 wrapper for WWLLN
+# ⚡️ aiowwlln: A simple Python3 wrapper for WWLLN
 
 [![Travis CI](https://travis-ci.org/bachya/aiowwlln.svg?branch=master)](https://travis-ci.org/bachya/aiowwlln)
 [![PyPi](https://img.shields.io/pypi/v/aiowwlln.svg)](https://pypi.python.org/pypi/aiowwlln)
@@ -8,7 +8,8 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/a03c9e96f19a3dc37f98/maintainability)](https://codeclimate.com/github/bachya/aiowwlln/maintainability)
 [![Say Thanks](https://img.shields.io/badge/SayThanks-!-1EAEDB.svg)](https://saythanks.io/to/bachya)
 
-`aiowwlln` is a simple Python library for retrieving information on lightning strikes from
+`aiowwlln` is a simple, `asyncio`-driven Python library for retrieving information on
+lightning strikes from
 [the World Wide Lightning Location Network (WWLLNN)](http://wwlln.net/).
 
 **NOTE:** This library is built on an unofficial API; therefore, it may stop working at

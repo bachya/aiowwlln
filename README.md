@@ -4,7 +4,7 @@
 [![PyPi](https://img.shields.io/pypi/v/aiowwlln.svg)](https://pypi.python.org/pypi/aiowwlln)
 [![Version](https://img.shields.io/pypi/pyversions/aiowwlln.svg)](https://pypi.python.org/pypi/aiowwlln)
 [![License](https://img.shields.io/pypi/l/aiowwlln.svg)](https://github.com/bachya/aiowwlln/blob/master/LICENSE)
-[![Code Coverage](https://codecov.io/gh/bachya/aiowwlln/branch/master/graph/badge.svg)](https://codecov.io/gh/bachya/aiowwlln)
+[![codecov](https://codecov.io/gh/bachya/aiowwlln/branch/dev/graph/badge.svg)](https://codecov.io/gh/bachya/aiowwlln)
 [![Maintainability](https://api.codeclimate.com/v1/badges/e78f0ba106cbe14bfcea/maintainability)](https://codeclimate.com/github/bachya/aiowwlln/maintainability)
 [![Say Thanks](https://img.shields.io/badge/SayThanks-!-1EAEDB.svg)](https://saythanks.io/to/bachya)
 

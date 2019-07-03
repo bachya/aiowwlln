@@ -1,5 +1,6 @@
 """Define a client to interact with the WWLLN."""
 import json
+import logging
 
 from aiocache import cached
 from aiohttp import ClientSession, client_exceptions
@@ -7,20 +8,34 @@ from aiohttp import ClientSession, client_exceptions
 from .errors import RequestError
 from .helpers.geo import get_nearest_by_coordinates, haversine
 
+_LOGGER = logging.getLogger(__name__)
+
 DATA_URL = "http://wwlln.net/new/map/data/current.json"
 
+DEFAULT_CACHE_KEY = "lightning_strike_data"
 DEFAULT_CACHE_SECONDS = 60
 
 
 class Client:
     """Define the client."""
 
-    def __init__(self, websession: ClientSession) -> None:
+    def __init__(
+        self, websession: ClientSession, *, cache_seconds: int = DEFAULT_CACHE_SECONDS
+    ) -> None:
         """Initialize."""
-        self._websession = websession
+        # Since this library is built on an unofficial data source, let's be responsible
+        # citizens and not allow updates faster than every 60 seconds:
+        if cache_seconds < DEFAULT_CACHE_SECONDS:
+            _LOGGER.warning(
+                "Setting cache timeout to lowest allowed: %s seconds",
+                DEFAULT_CACHE_SECONDS,
+            )
+            cache_seconds = DEFAULT_CACHE_SECONDS
 
-    @cached(ttl=DEFAULT_CACHE_SECONDS)
-    async def dump(self) -> dict:
+        self._websession = websession
+        self.dump = cached(key=DEFAULT_CACHE_KEY, ttl=cache_seconds)(self._dump)
+
+    async def _dump(self) -> dict:
         """Return raw lightning strike data from the WWLLN."""
         return await self.request("get", DATA_URL)
 

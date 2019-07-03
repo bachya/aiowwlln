@@ -69,23 +69,29 @@ async def main() -> None:
     async with ClientSession() as websession:
         client = aiowwlln.Client(websession)
 
-        # Create a client:
+        # Create a client and get all strike data – by default, data is cached for
+        # 60 seconds (be a responsible data citizen!):
         client = Client(websession)
-
-        # Get all strike data:
         await client.dump()
 
-        # Get strike data within a 50 km radius around a set of coordinates:
+        # If you want to increase the cache to 24 hours, go for it:
+        client = Client(websession, cache_seconds=60*60*24)
+        await client.dump()
+
+        # Get strike data within a 50 km radius around a set of coordinates (note that
+        # the cache still applies):
         await client.within_radius(
             56.1621538, 92.2333561, 50, unit="metric"
         )
 
-        # Get strike data within a 10 mile radius around a set of coordinates:
+        # Get strike data within a 10 mile radius around a set of coordinates (note that
+        # the cache still applies):
         await client.within_radius(
             56.1621538, 92.2333561, 10, unit="imperial"
         )
 
-        # Get the nearest strike to a set of coordinates:
+        # Get the nearest strike to a set of coordinates (note that the cache still
+        # applies):
         await client.nearest(56.1621538, 92.2333561)
 
 

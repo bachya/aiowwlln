@@ -26,6 +26,8 @@ VERSION = None
 REQUIRED = [  # type: ignore
     "aiocache",
     "aiohttp",
+    "msgpack",
+    "ujson",
 ]
 
 # The rest you shouldn't have to touch too much :)

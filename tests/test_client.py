@@ -86,7 +86,9 @@ async def test_within_imperial(aresponses, event_loop, fixture_dump_json):  # no
         )
 
         assert len(data) == 1
-        assert data[0]["distance"] == 19.24482243239678
+
+        first_strike = next(iter(data.values()))
+        assert first_strike["distance"] == 19.24482243239678
 
 
 @pytest.mark.asyncio
@@ -99,7 +101,9 @@ async def test_within_metric(aresponses, event_loop, fixture_dump_json):  # noqa
         )
 
         assert len(data) == 1
-        assert data[0]["distance"] == 30.971194229766567
+
+        first_strike = next(iter(data.values()))
+        assert first_strike["distance"] == 30.971194229766567
 
 
 @pytest.mark.asyncio

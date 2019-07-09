@@ -71,20 +71,20 @@ class Client:
 
     async def within_radius(
         self, latitude: float, longitude: float, radius: float, *, unit: str = "metric"
-    ) -> list:
-        """Get a list of strikes within a radius around a set of coordinates."""
+    ) -> dict:
+        """Get a dict of strike IDs/strikes within a radius around a lat. and long."""
         if unit not in ("imperial", "metric"):
             raise ValueError('Unit must be either "imperial" or "metric"')
 
         all_strikes = await self.dump()
 
-        nearby_strikes = []
-        for strike in all_strikes.values():
+        nearby_strikes = {}
+        for strike_id, strike in all_strikes.items():
             distance = haversine(
                 latitude, longitude, strike["lat"], strike["long"], unit=unit
             )
             if distance <= radius:
                 strike["distance"] = distance
-                nearby_strikes.append(strike)
+                nearby_strikes[strike_id] = strike
 
         return nearby_strikes

@@ -5,22 +5,6 @@ AVG_EARTH_RADIUS_METRIC = 6371
 AVG_EARTH_RADIUS_IMPERIAL = 3958.8
 
 
-def get_nearest_by_coordinates(
-    data: list,
-    latitude_key: str,
-    longitude_key: str,
-    target_latitude: float,
-    target_longitude: float,
-) -> dict:
-    """Get the closest dict entry based on latitude/longitude."""
-    return min(
-        data,
-        key=lambda s: haversine(
-            target_latitude, target_longitude, s[latitude_key], s[longitude_key]
-        ),
-    )
-
-
 def haversine(
     lat1: float, lon1: float, lat2: float, lon2: float, *, unit: str = "metric"
 ) -> float:

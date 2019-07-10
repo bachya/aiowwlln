@@ -8,7 +8,7 @@ from aiocache import cached
 from aiohttp import ClientSession, client_exceptions
 
 from .errors import RequestError
-from .helpers.geo import get_nearest_by_coordinates, haversine
+from .helpers.geo import haversine
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -40,19 +40,6 @@ class Client:
     async def _dump(self) -> dict:
         """Return raw lightning strike data from the WWLLN."""
         return await self.request("get", DATA_URL)
-
-    async def nearest(self, latitude: float, longitude: float) -> dict:
-        """Get the nearest strike to a set of coordinates."""
-        all_strikes = await self.dump()
-        nearest_strike = get_nearest_by_coordinates(
-            list(all_strikes.values()), "lat", "long", latitude, longitude
-        )
-
-        nearest_strike["distance"] = haversine(
-            latitude, longitude, nearest_strike["lat"], nearest_strike["long"]
-        )
-
-        return nearest_strike
 
     async def request(
         self, method: str, url: str, *, headers: dict = None, params: dict = None

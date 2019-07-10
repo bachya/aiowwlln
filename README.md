@@ -97,10 +97,6 @@ async def main() -> None:
             56.1621538, 92.2333561, 50, unit="metric", window=timedelta(minutes=10)
         )
 
-        # Get the nearest strike to a set of coordinates (note that the cache still
-        # applies):
-        await client.nearest(56.1621538, 92.2333561)
-
 
 asyncio.get_event_loop().run_until_complete(main())
 ```

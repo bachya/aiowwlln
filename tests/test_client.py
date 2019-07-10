@@ -64,21 +64,6 @@ async def test_invalid_unit(event_loop):  # noqa
 
 
 @pytest.mark.asyncio
-async def test_nearest(event_loop):  # noqa
-    """Test retrieving the nearest strike."""
-    async with aiohttp.ClientSession(loop=event_loop) as websession:
-        client = Client(websession)
-        nearest_strike = await client.nearest(TEST_LATITUDE, TEST_LONGITUDE)
-
-        assert nearest_strike == {
-            "distance": 30.971194229766567,
-            "lat": 56.13,
-            "long": 92.73,
-            "unixTime": 1561903959.4,
-        }
-
-
-@pytest.mark.asyncio
 async def test_within_imperial(event_loop):  # noqa
     """Test retrieving the nearest strikes within a mile radius."""
     async with aiohttp.ClientSession(loop=event_loop) as websession:

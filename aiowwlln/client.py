@@ -1,6 +1,8 @@
 """Define a client to interact with the WWLLN."""
+from datetime import timedelta
 import json
 import logging
+import time
 
 from aiocache import cached
 from aiohttp import ClientSession, client_exceptions
@@ -70,9 +72,19 @@ class Client:
                 raise RequestError("Invalid JSON found from {0}".format(url))
 
     async def within_radius(
-        self, latitude: float, longitude: float, radius: float, *, unit: str = "metric"
+        self,
+        latitude: float,
+        longitude: float,
+        radius: float,
+        *,
+        unit: str = "metric",
+        window: timedelta = None
     ) -> dict:
-        """Get a dict of strike IDs/strikes within a radius around a lat. and long."""
+        """
+        Get a dict of strike IDs/strikes within a radius around a lat. and long.
+
+        Optionally provide a window of time to restrict results to.
+        """
         if unit not in ("imperial", "metric"):
             raise ValueError('Unit must be either "imperial" or "metric"')
 
@@ -83,7 +95,9 @@ class Client:
             distance = haversine(
                 latitude, longitude, strike["lat"], strike["long"], unit=unit
             )
-            if distance <= radius:
+            if distance <= radius and (
+                not window or time.time() - strike["unixTime"] <= window.total_seconds()
+            ):
                 strike["distance"] = distance
                 nearby_strikes[strike_id] = strike
 

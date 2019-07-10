@@ -58,6 +58,7 @@ Create a client, initialize it, then get to it:
 
 ```python
 import asyncio
+from datetime import datetime
 
 from aiohttp import ClientSession
 
@@ -88,6 +89,12 @@ async def main() -> None:
         # the cache still applies):
         await client.within_radius(
             56.1621538, 92.2333561, 10, unit="imperial"
+        )
+
+        # Get strike data within a 50 km radius around a set of coordinates _and_
+        # within the last 10 minutes:
+        await client.within_radius(
+            56.1621538, 92.2333561, 50, unit="metric", window=timedelta(minutes=10)
         )
 
         # Get the nearest strike to a set of coordinates (note that the cache still

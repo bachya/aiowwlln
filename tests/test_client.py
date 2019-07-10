@@ -1,6 +1,8 @@
 """Define tests for the client object."""
 # pylint: disable=redefined-outer-name,unused-import
+from datetime import timedelta
 import json
+import time
 
 from aiocache import SimpleMemoryCache
 import aiohttp
@@ -50,7 +52,7 @@ async def test_dump(aresponses, event_loop, fixture_dump_json):  # noqa
 
 
 @pytest.mark.asyncio
-async def test_invalid_unit(aresponses, event_loop, fixture_dump_json):  # noqa
+async def test_invalid_unit(event_loop):  # noqa
     """Test raising a proper exception when an incorrect radius unit is used."""
     async with aiohttp.ClientSession(loop=event_loop) as websession:
         client = Client(websession)
@@ -62,7 +64,7 @@ async def test_invalid_unit(aresponses, event_loop, fixture_dump_json):  # noqa
 
 
 @pytest.mark.asyncio
-async def test_nearest(aresponses, event_loop, fixture_dump_json):  # noqa
+async def test_nearest(event_loop):  # noqa
     """Test retrieving the nearest strike."""
     async with aiohttp.ClientSession(loop=event_loop) as websession:
         client = Client(websession)
@@ -77,7 +79,7 @@ async def test_nearest(aresponses, event_loop, fixture_dump_json):  # noqa
 
 
 @pytest.mark.asyncio
-async def test_within_imperial(aresponses, event_loop, fixture_dump_json):  # noqa
+async def test_within_imperial(event_loop):  # noqa
     """Test retrieving the nearest strikes within a mile radius."""
     async with aiohttp.ClientSession(loop=event_loop) as websession:
         client = Client(websession)
@@ -92,7 +94,7 @@ async def test_within_imperial(aresponses, event_loop, fixture_dump_json):  # no
 
 
 @pytest.mark.asyncio
-async def test_within_metric(aresponses, event_loop, fixture_dump_json):  # noqa
+async def test_within_metric(event_loop):  # noqa
     """Test retrieving the nearest strikes within a kilometer radius."""
     async with aiohttp.ClientSession(loop=event_loop) as websession:
         client = Client(websession)
@@ -104,6 +106,36 @@ async def test_within_metric(aresponses, event_loop, fixture_dump_json):  # noqa
 
         first_strike = next(iter(data.values()))
         assert first_strike["distance"] == 30.971194229766567
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "fixture_dump_json",
+    [{"999999": {"unixTime": time.time(), "lat": 56.13, "long": 92.73}}],
+)
+async def test_within_window(aresponses, event_loop, fixture_dump_json):  # noqa
+    """Test retrieving the nearest strikes within a 10-minute window."""
+    # Bust the cache since we're parametrizing the input data:
+    cache = SimpleMemoryCache()
+    await cache.delete(DEFAULT_CACHE_KEY)
+
+    aresponses.add(
+        "wwlln.net",
+        "/new/map/data/current.json",
+        "get",
+        aresponses.Response(text=json.dumps(fixture_dump_json), status=200),
+    )
+
+    async with aiohttp.ClientSession(loop=event_loop) as websession:
+        client = Client(websession)
+        data = await client.within_radius(
+            TEST_LATITUDE,
+            TEST_LONGITUDE,
+            TEST_RADIUS_METRIC,
+            window=timedelta(minutes=10),
+        )
+
+        assert len(data) == 1
 
 
 @pytest.mark.asyncio

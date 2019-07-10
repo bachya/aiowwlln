@@ -1,5 +1,6 @@
 """Run an example script to quickly test."""
 import asyncio
+from datetime import timedelta
 
 from aiohttp import ClientSession
 
@@ -21,16 +22,16 @@ async def main() -> None:
             # Get all strike data:
             print(await client.dump())
 
-            # Get strike data within a radius around a set of coordinates:
+            # Get strike data within a 50km radius around a set of coordinates _and_
+            # within the last hour:
             print(
                 await client.within_radius(
-                    TARGET_LATITUDE, TARGET_LONGITUDE, TARGET_RADIUS_KM
+                    TARGET_LATITUDE,
+                    TARGET_LONGITUDE,
+                    TARGET_RADIUS_KM,
+                    window=timedelta(hours=1),
                 )
             )
-
-            # Get the nearest strike to a set of coordinates:
-            print(await client.nearest(TARGET_LATITUDE, TARGET_LONGITUDE))
-
         except WWLLNError as err:
             print(err)
 

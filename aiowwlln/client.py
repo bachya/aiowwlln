@@ -3,6 +3,7 @@ from datetime import timedelta
 import json
 import logging
 import time
+from typing import Callable, Dict
 
 from aiocache import cached
 from aiohttp import ClientSession, client_exceptions
@@ -10,12 +11,12 @@ from aiohttp import ClientSession, client_exceptions
 from .errors import RequestError
 from .helpers.geo import haversine
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER: logging.Logger = logging.getLogger(__name__)
 
-DATA_URL = "http://wwlln.net/new/map/data/current.json"
+DATA_URL: str = "http://wwlln.net/new/map/data/current.json"
 
-DEFAULT_CACHE_KEY = "lightning_strike_data"
-DEFAULT_CACHE_SECONDS = 60
+DEFAULT_CACHE_KEY: str = "lightning_strike_data"
+DEFAULT_CACHE_SECONDS: int = 60
 
 
 class Client:
@@ -34,8 +35,10 @@ class Client:
             )
             cache_seconds = DEFAULT_CACHE_SECONDS
 
-        self._websession = websession
-        self.dump = cached(key=DEFAULT_CACHE_KEY, ttl=cache_seconds)(self._dump)
+        self._websession: ClientSession = websession
+        self.dump: Callable = cached(key=DEFAULT_CACHE_KEY, ttl=cache_seconds)(
+            self._dump
+        )
 
     async def _dump(self) -> dict:
         """Return raw lightning strike data from the WWLLN."""
@@ -73,9 +76,11 @@ class Client:
         if unit not in ("imperial", "metric"):
             raise ValueError('Unit must be either "imperial" or "metric"')
 
-        all_strikes = await self.dump()
+        all_strikes: dict = await self.dump()
 
-        nearby_strikes = {}
+        nearby_strikes: Dict[str, dict] = {}
+        strike_id: str
+        strike: dict
         for strike_id, strike in all_strikes.items():
             distance = haversine(
                 latitude, longitude, strike["lat"], strike["long"], unit=unit

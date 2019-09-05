@@ -19,7 +19,7 @@ DESCRIPTION = "A simple Python API for the WWLLN"
 URL = "https://github.com/bachya/aiowwlln"
 EMAIL = "bachya1208@gmail.com"
 AUTHOR = "Aaron Bach"
-REQUIRES_PYTHON = ">=3.5.3"
+REQUIRES_PYTHON = ">=3.6.0"
 VERSION = None
 
 # What packages are required for this module to be executed?
@@ -60,8 +60,8 @@ class UploadCommand(Command):
 
     @staticmethod
     def status(string):
-        """Prints things in bold."""
-        print("\033[1m{0}\033[0m".format(string))
+        """Print things in bold."""
+        print(f"\033[1m{string}\033[0m")
 
     def initialize_options(self):
         """Add options for initialization."""
@@ -80,13 +80,13 @@ class UploadCommand(Command):
             pass
 
         self.status("Building Source and Wheel (universal) distribution…")
-        os.system("{0} setup.py sdist bdist_wheel --universal".format(sys.executable))
+        os.system(f"{sys.executable} setup.py sdist bdist_wheel --universal")
 
         self.status("Uploading the package to PyPi via Twine…")
         os.system("twine upload dist/*")
 
         self.status("Pushing git tags…")
-        os.system("git tag v{0}".format(ABOUT["__version__"]))
+        os.system(f"git tag v{ABOUT['__version__']}".format(ABOUT["__version__"]))
         os.system("git push --tags")
 
         sys.exit()
@@ -118,7 +118,6 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: Implementation :: CPython",

@@ -52,11 +52,9 @@ class Client:
                 resp.raise_for_status()
                 return await resp.json(content_type=None)
             except client_exceptions.ClientError as err:
-                raise RequestError(
-                    "Error requesting data from {0}: {1}".format(url, err)
-                ) from None
+                raise RequestError(f"Error requesting data from {url}: {err}") from None
             except json.decoder.JSONDecodeError:
-                raise RequestError("Invalid JSON found from {0}".format(url))
+                raise RequestError(f"Invalid JSON found from {url}")
 
     async def within_radius(
         self,
@@ -65,7 +63,7 @@ class Client:
         radius: float,
         *,
         unit: str = "metric",
-        window: timedelta = None
+        window: timedelta = None,
     ) -> dict:
         """
         Get a dict of strike IDs/strikes within a radius around a lat. and long.

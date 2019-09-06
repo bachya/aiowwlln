@@ -1,2 +1,2 @@
 """Define a version constant."""
-__version__: str = "2.0.0"
+__version__: str = "2.0.1"

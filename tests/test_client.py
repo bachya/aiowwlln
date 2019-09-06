@@ -168,8 +168,10 @@ async def test_invalid_cache_duration(caplog, event_loop):  # noqa
 
 
 @pytest.mark.asyncio
-async def test_invalid_json(aresponses, event_loop, fixture_dump_invalid_json):  # noqa
-    """Test raising a proper exception when incorrect JSON is returned.
+async def test_invalid_json_retry_failure(
+    aresponses, event_loop, fixture_dump_invalid_json  # noqa
+):
+    """Test a failed retry after getting a failed JSON error.
 
     Note that we have to bust the cache before executing this test since all tests use
     the same event loop."""
@@ -182,11 +184,45 @@ async def test_invalid_json(aresponses, event_loop, fixture_dump_invalid_json): 
         "get",
         aresponses.Response(text=fixture_dump_invalid_json, status=200),
     )
+    aresponses.add(
+        "wwlln.net",
+        "/new/map/data/current.json",
+        "get",
+        aresponses.Response(text=fixture_dump_invalid_json, status=200),
+    )
+
+    with pytest.raises(RequestError):
+        async with aiohttp.ClientSession(loop=event_loop) as websession:
+            client = Client(websession)
+            await client.dump()
+
+
+@pytest.mark.asyncio
+async def test_invalid_json_retry_successful(
+    aresponses, event_loop, fixture_dump_invalid_json, fixture_dump_json  # noqa
+):
+    """Test a successful retry after getting a failed JSON error.
+
+    Note that we have to bust the cache before executing this test since all tests use
+    the same event loop."""
+    cache = SimpleMemoryCache()
+    await cache.delete(DEFAULT_CACHE_KEY)
+
+    aresponses.add(
+        "wwlln.net",
+        "/new/map/data/current.json",
+        "get",
+        aresponses.Response(text=fixture_dump_invalid_json, status=200),
+    )
+    aresponses.add(
+        "wwlln.net",
+        "/new/map/data/current.json",
+        "get",
+        aresponses.Response(text=json.dumps(fixture_dump_json), status=200),
+    )
 
     async with aiohttp.ClientSession(loop=event_loop) as websession:
         client = Client(websession)
+        data = await client.dump()
 
-        with pytest.raises(RequestError):
-            await client.within_radius(
-                TEST_LATITUDE, TEST_LONGITUDE, TEST_RADIUS_METRIC
-            )
+        assert len(data) == 5

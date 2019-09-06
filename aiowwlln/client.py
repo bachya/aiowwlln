@@ -1,4 +1,5 @@
 """Define a client to interact with the WWLLN."""
+import asyncio
 from datetime import timedelta
 import json
 import logging
@@ -17,6 +18,7 @@ DATA_URL: str = "http://wwlln.net/new/map/data/current.json"
 
 DEFAULT_CACHE_KEY: str = "lightning_strike_data"
 DEFAULT_CACHE_SECONDS: int = 60
+DEFAULT_RETRY_DELAY: int = 3
 
 
 class Client:
@@ -35,6 +37,7 @@ class Client:
             )
             cache_seconds = DEFAULT_CACHE_SECONDS
 
+        self._currently_retrying: bool = False
         self._websession: ClientSession = websession
         self.dump: Callable = cached(key=DEFAULT_CACHE_KEY, ttl=cache_seconds)(
             self._dump
@@ -53,11 +56,22 @@ class Client:
         ) as resp:
             try:
                 resp.raise_for_status()
-                return await resp.json(content_type=None)
+                data: dict = await resp.json(content_type=None)
+                self._currently_retrying = False
+                return data
             except client_exceptions.ClientError as err:
                 raise RequestError(f"Error requesting data from {url}: {err}") from None
             except json.decoder.JSONDecodeError:
-                raise RequestError(f"Invalid JSON found from {url}")
+                if self._currently_retrying:
+                    raise RequestError(f"Invalid JSON found multiple times from {url}")
+
+                self._currently_retrying = True
+                _LOGGER.info(
+                    "Invalid JSON received; waiting %s seconds before trying again",
+                    DEFAULT_RETRY_DELAY,
+                )
+                await asyncio.sleep(DEFAULT_RETRY_DELAY)
+                return await self.request(method, url, headers=headers, params=params)
 
     async def within_radius(
         self,

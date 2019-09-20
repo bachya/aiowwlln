@@ -59,15 +59,13 @@ class Client:
                 data: dict = await resp.json(content_type=None)
                 self._currently_retrying = False
                 return data
-            except client_exceptions.ClientError as err:
-                raise RequestError(f"Error requesting data from {url}: {err}") from None
-            except json.decoder.JSONDecodeError:
+            except (client_exceptions.ClientError, json.decoder.JSONDecodeError) as err:
                 if self._currently_retrying:
-                    raise RequestError(f"Invalid JSON found multiple times from {url}")
+                    raise RequestError(f"Recurring request error from {url}: {err}")
 
                 self._currently_retrying = True
                 _LOGGER.info(
-                    "Invalid JSON received; waiting %s seconds before trying again",
+                    "Error during request; waiting %s seconds before trying again",
                     DEFAULT_RETRY_DELAY,
                 )
                 await asyncio.sleep(DEFAULT_RETRY_DELAY)

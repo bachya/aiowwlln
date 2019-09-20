@@ -23,7 +23,10 @@ from .fixtures.client import fixture_dump_json, fixture_dump_invalid_json  # noq
 
 @pytest.mark.asyncio
 async def test_bad_request(aresponses, event_loop):
-    """Test that the proper exception is raised during a bad request."""
+    """Test that the proper exception is raised during a recurring bad request."""
+    aresponses.add(
+        "wwlln.net", "/bad_endpoint", "get", aresponses.Response(text="", status=404)
+    )
     aresponses.add(
         "wwlln.net", "/bad_endpoint", "get", aresponses.Response(text="", status=404)
     )

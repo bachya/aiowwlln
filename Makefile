@@ -1,21 +1,21 @@
 clean:
-	pipenv --rm
+	. .venv/bin/activate; pre-commit uninstall
+	rm -rf .venv/
 coverage:
-	pipenv run py.test -s --verbose --cov-report term-missing --cov-report xml --cov=aiowwlln tests
+	.venv/bin/py.test -s --verbose --cov-report term-missing --cov-report xml --cov=aiowwlln tests
 init:
-	pip3 install --upgrade pip pipenv
-	pipenv lock
-	pipenv install --three --dev
-	pipenv run pre-commit install
+	virtualenv .venv
+	.venv/bin/pip3 install poetry
+	. .venv/bin/activate; poetry lock; poetry install; pre-commit install
 lint:
-	pipenv run flake8 aiowwlln
-	pipenv run pydocstyle aiowwlln
-	pipenv run pylint aiowwlln
+	.venv/bin/flake8 aiowwlln
+	.venv/bin/pydocstyle aiowwlln
+	.venv/bin/pylint aiowwlln
 publish:
-	pipenv run python setup.py sdist bdist_wheel
-	pipenv run twine upload dist/*
-	rm -rf dist/ build/ .egg aiowwlln.egg-info/
+	.venv/bin/poetry build
+	.venv/bin/poetry publish
+	rm -rf dist/ build/ .egg *.egg-info/
 test:
-	pipenv run py.test
+	.venv/bin/py.test
 typing:
-	pipenv run mypy --ignore-missing-imports aiowwlln
+	.venv/bin/mypy --ignore-missing-imports aiowwlln

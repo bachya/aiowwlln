@@ -1,6 +1,6 @@
 # ⚡️ aiowwlln: A simple Python3 wrapper for WWLLN
 
-[![Travis CI](https://travis-ci.org/bachya/aiowwlln.svg?branch=master)](https://travis-ci.org/bachya/aiowwlln)
+[![CI](https://github.com/bachya/aiowwlln/workflows/CI/badge.svg)](https://github.com/bachya/aiowwlln/actions)
 [![PyPi](https://img.shields.io/pypi/v/aiowwlln.svg)](https://pypi.python.org/pypi/aiowwlln)
 [![Version](https://img.shields.io/pypi/pyversions/aiowwlln.svg)](https://pypi.python.org/pypi/aiowwlln)
 [![License](https://img.shields.io/pypi/l/aiowwlln.svg)](https://github.com/bachya/aiowwlln/blob/master/LICENSE)

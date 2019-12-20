@@ -9,16 +9,16 @@ import aiohttp
 import pytest
 
 from aiowwlln import Client
+from aiowwlln.client import DEFAULT_CACHE_KEY
 from aiowwlln.errors import RequestError
 
-from aiowwlln.client import DEFAULT_CACHE_KEY
 from .const import (
     TEST_LATITUDE,
     TEST_LONGITUDE,
     TEST_RADIUS_IMPERIAL,
     TEST_RADIUS_METRIC,
 )
-from .fixtures.client import fixture_dump_json, fixture_dump_invalid_json  # noqa
+from .fixtures.client import fixture_dump_invalid_json, fixture_dump_json  # noqa
 
 
 @pytest.mark.asyncio

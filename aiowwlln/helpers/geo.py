@@ -1,5 +1,5 @@
 """Define various geo utility functions."""
-from math import radians, cos, sin, asin, sqrt
+from math import asin, cos, radians, sin, sqrt
 
 AVG_EARTH_RADIUS_METRIC: int = 6371
 AVG_EARTH_RADIUS_IMPERIAL: float = 3958.8

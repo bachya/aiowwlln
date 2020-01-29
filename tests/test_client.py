@@ -1,8 +1,6 @@
 """Define tests for the client object."""
-# pylint: disable=redefined-outer-name,unused-import
 from datetime import timedelta
 import json
-import time
 
 from aiocache import SimpleMemoryCache
 import aiohttp
@@ -12,17 +10,16 @@ from aiowwlln import Client
 from aiowwlln.client import DEFAULT_CACHE_KEY
 from aiowwlln.errors import RequestError
 
-from .const import (
+from .common import (
     TEST_LATITUDE,
     TEST_LONGITUDE,
     TEST_RADIUS_IMPERIAL,
     TEST_RADIUS_METRIC,
 )
-from .fixtures.client import fixture_dump_invalid_json, fixture_dump_json  # noqa
 
 
 @pytest.mark.asyncio
-async def test_bad_request(aresponses, event_loop):
+async def test_bad_request(aresponses):
     """Test that the proper exception is raised during a recurring bad request."""
     aresponses.add(
         "wwlln.net", "/bad_endpoint", "get", aresponses.Response(text="", status=404)
@@ -32,32 +29,31 @@ async def test_bad_request(aresponses, event_loop):
     )
 
     with pytest.raises(RequestError):
-        async with aiohttp.ClientSession(loop=event_loop) as websession:
+        async with aiohttp.ClientSession() as websession:
             client = Client(websession)
             await client.request("get", "http://wwlln.net/bad_endpoint")
 
 
 @pytest.mark.asyncio
-async def test_dump(aresponses, event_loop, fixture_dump_json):  # noqa
+async def test_dump(aresponses, dump_response):
     """Test that dumping the WWLLN data works."""
     aresponses.add(
         "wwlln.net",
         "/new/map/data/current.json",
         "get",
-        aresponses.Response(text=json.dumps(fixture_dump_json), status=200),
+        aresponses.Response(text=json.dumps(dump_response), status=200),
     )
 
-    async with aiohttp.ClientSession(loop=event_loop) as websession:
+    async with aiohttp.ClientSession() as websession:
         client = Client(websession)
         data = await client.dump()
-
-        assert len(data) == 5
+        assert len(data) == 6
 
 
 @pytest.mark.asyncio
-async def test_invalid_unit(event_loop):  # noqa
+async def test_invalid_unit():
     """Test raising a proper exception when an incorrect radius unit is used."""
-    async with aiohttp.ClientSession(loop=event_loop) as websession:
+    async with aiohttp.ClientSession() as websession:
         client = Client(websession)
 
         with pytest.raises(ValueError):
@@ -67,41 +63,35 @@ async def test_invalid_unit(event_loop):  # noqa
 
 
 @pytest.mark.asyncio
-async def test_within_imperial(event_loop):  # noqa
+async def test_within_imperial():
     """Test retrieving the nearest strikes within a mile radius."""
-    async with aiohttp.ClientSession(loop=event_loop) as websession:
+    async with aiohttp.ClientSession() as websession:
         client = Client(websession)
         data = await client.within_radius(
             TEST_LATITUDE, TEST_LONGITUDE, TEST_RADIUS_IMPERIAL, unit="imperial"
         )
-
-        assert len(data) == 1
+        assert len(data) == 2
 
         first_strike = next(iter(data.values()))
         assert first_strike["distance"] == 19.24482243239678
 
 
 @pytest.mark.asyncio
-async def test_within_metric(event_loop):  # noqa
+async def test_within_metric():
     """Test retrieving the nearest strikes within a kilometer radius."""
-    async with aiohttp.ClientSession(loop=event_loop) as websession:
+    async with aiohttp.ClientSession() as websession:
         client = Client(websession)
         data = await client.within_radius(
             TEST_LATITUDE, TEST_LONGITUDE, TEST_RADIUS_METRIC
         )
-
-        assert len(data) == 1
+        assert len(data) == 2
 
         first_strike = next(iter(data.values()))
         assert first_strike["distance"] == 30.971194229766567
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "fixture_dump_json",
-    [{"999999": {"unixTime": time.time(), "lat": 56.13, "long": 92.73}}],
-)
-async def test_within_window(aresponses, event_loop, fixture_dump_json):  # noqa
+async def test_within_window(aresponses, dump_response):
     """Test retrieving the nearest strikes within a 10-minute window."""
     # Bust the cache since we're parametrizing the input data:
     cache = SimpleMemoryCache()
@@ -111,10 +101,10 @@ async def test_within_window(aresponses, event_loop, fixture_dump_json):  # noqa
         "wwlln.net",
         "/new/map/data/current.json",
         "get",
-        aresponses.Response(text=json.dumps(fixture_dump_json), status=200),
+        aresponses.Response(text=json.dumps(dump_response), status=200),
     )
 
-    async with aiohttp.ClientSession(loop=event_loop) as websession:
+    async with aiohttp.ClientSession() as websession:
         client = Client(websession)
         data = await client.within_radius(
             TEST_LATITUDE,
@@ -122,12 +112,11 @@ async def test_within_window(aresponses, event_loop, fixture_dump_json):  # noqa
             TEST_RADIUS_METRIC,
             window=timedelta(minutes=10),
         )
-
         assert len(data) == 1
 
 
 @pytest.mark.asyncio
-async def test_caching(aresponses, event_loop, fixture_dump_json):  # noqa
+async def test_caching(aresponses, dump_response):
     """Test that the caching mechanism works properly.
 
     Note that we have to bust the cache before executing this test since all tests use
@@ -136,13 +125,13 @@ async def test_caching(aresponses, event_loop, fixture_dump_json):  # noqa
         "wwlln.net",
         "/new/map/data/current.json",
         "get",
-        aresponses.Response(text=json.dumps(fixture_dump_json), status=200),
+        aresponses.Response(text=json.dumps(dump_response), status=200),
     )
 
     cache = SimpleMemoryCache()
     await cache.delete(DEFAULT_CACHE_KEY)
 
-    async with aiohttp.ClientSession(loop=event_loop) as websession:
+    async with aiohttp.ClientSession() as websession:
         client = Client(websession)
 
         cache_exists = await cache.exists(DEFAULT_CACHE_KEY)
@@ -155,9 +144,9 @@ async def test_caching(aresponses, event_loop, fixture_dump_json):  # noqa
 
 
 @pytest.mark.asyncio
-async def test_invalid_cache_duration(caplog, event_loop):  # noqa
+async def test_invalid_cache_duration(caplog):
     """Test the cache duration floor."""
-    async with aiohttp.ClientSession(loop=event_loop) as websession:
+    async with aiohttp.ClientSession() as websession:
         _ = Client(websession, cache_seconds=1)
         logs = [
             l
@@ -171,9 +160,7 @@ async def test_invalid_cache_duration(caplog, event_loop):  # noqa
 
 
 @pytest.mark.asyncio
-async def test_invalid_json_retry_failure(
-    aresponses, event_loop, fixture_dump_invalid_json  # noqa
-):
+async def test_invalid_json_retry_failure(aresponses):
     """Test a failed retry after getting a failed JSON error.
 
     Note that we have to bust the cache before executing this test since all tests use
@@ -185,25 +172,23 @@ async def test_invalid_json_retry_failure(
         "wwlln.net",
         "/new/map/data/current.json",
         "get",
-        aresponses.Response(text=fixture_dump_invalid_json, status=200),
+        aresponses.Response(text="This isn't JSON", status=200),
     )
     aresponses.add(
         "wwlln.net",
         "/new/map/data/current.json",
         "get",
-        aresponses.Response(text=fixture_dump_invalid_json, status=200),
+        aresponses.Response(text="This isn't JSON", status=200),
     )
 
     with pytest.raises(RequestError):
-        async with aiohttp.ClientSession(loop=event_loop) as websession:
+        async with aiohttp.ClientSession() as websession:
             client = Client(websession)
             await client.dump()
 
 
 @pytest.mark.asyncio
-async def test_invalid_json_retry_successful(
-    aresponses, event_loop, fixture_dump_invalid_json, fixture_dump_json  # noqa
-):
+async def test_invalid_json_retry_successful(aresponses, dump_response):
     """Test a successful retry after getting a failed JSON error.
 
     Note that we have to bust the cache before executing this test since all tests use
@@ -215,17 +200,16 @@ async def test_invalid_json_retry_successful(
         "wwlln.net",
         "/new/map/data/current.json",
         "get",
-        aresponses.Response(text=fixture_dump_invalid_json, status=200),
+        aresponses.Response(text="This isn't JSON", status=200),
     )
     aresponses.add(
         "wwlln.net",
         "/new/map/data/current.json",
         "get",
-        aresponses.Response(text=json.dumps(fixture_dump_json), status=200),
+        aresponses.Response(text=json.dumps(dump_response), status=200),
     )
 
-    async with aiohttp.ClientSession(loop=event_loop) as websession:
+    async with aiohttp.ClientSession() as websession:
         client = Client(websession)
         data = await client.dump()
-
-        assert len(data) == 5
+        assert len(data) == 6

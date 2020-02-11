@@ -19,7 +19,7 @@ use_parentheses = true
 
 [tool.poetry]
 name = "aiowwlln"
-version = "2.0.4"
+version = "2.0.5"
 description = "A simple Python API for the WWLLN"
 readme = "README.md"
 authors = ["Aaron Bach <bachya1208@gmail.com>"]

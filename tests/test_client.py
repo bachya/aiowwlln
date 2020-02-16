@@ -120,7 +120,8 @@ async def test_caching(aresponses, dump_response):
     """Test that the caching mechanism works properly.
 
     Note that we have to bust the cache before executing this test since all tests use
-    the same event loop."""
+    the same event loop.
+    """
     aresponses.add(
         "wwlln.net",
         "/new/map/data/current.json",
@@ -164,7 +165,8 @@ async def test_invalid_json_retry_failure(aresponses):
     """Test a failed retry after getting a failed JSON error.
 
     Note that we have to bust the cache before executing this test since all tests use
-    the same event loop."""
+    the same event loop.
+    """
     cache = SimpleMemoryCache()
     await cache.delete(DEFAULT_CACHE_KEY)
 
@@ -192,7 +194,8 @@ async def test_invalid_json_retry_successful(aresponses, dump_response):
     """Test a successful retry after getting a failed JSON error.
 
     Note that we have to bust the cache before executing this test since all tests use
-    the same event loop."""
+    the same event loop.
+    """
     cache = SimpleMemoryCache()
     await cache.delete(DEFAULT_CACHE_KEY)
 

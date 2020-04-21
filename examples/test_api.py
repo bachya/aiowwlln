@@ -14,10 +14,10 @@ TARGET_RADIUS_KM = 50
 
 async def main() -> None:
     """Create the aiohttp session and run the example."""
-    async with ClientSession() as websession:
+    async with ClientSession() as session:
         try:
             # Create a client:
-            client = Client(websession)
+            client = Client(session=session)
 
             # Get all strike data:
             print(await client.dump())
@@ -36,4 +36,4 @@ async def main() -> None:
             print(err)
 
 
-asyncio.get_event_loop().run_until_complete(main())
+asyncio.run(main())

@@ -4,10 +4,11 @@ from datetime import timedelta
 import json
 import logging
 import time
-from typing import Callable, Dict
+from typing import Callable, Dict, Optional
 
 from aiocache import cached
-from aiohttp import ClientSession, client_exceptions
+from aiohttp import ClientSession, ClientTimeout
+from aiohttp.client_exceptions import ClientError
 
 from .errors import RequestError
 from .helpers.geo import haversine
@@ -18,6 +19,7 @@ DATA_URL: str = "http://wwlln.net/new/map/data/current.json"
 
 DEFAULT_CACHE_KEY: str = "lightning_strike_data"
 DEFAULT_CACHE_SECONDS: int = 60
+DEFAULT_TIMEOUT: int = 10
 DEFAULT_RETRY_DELAY: int = 3
 
 
@@ -25,7 +27,10 @@ class Client:
     """Define the client."""
 
     def __init__(
-        self, websession: ClientSession, *, cache_seconds: int = DEFAULT_CACHE_SECONDS
+        self,
+        *,
+        session: Optional[ClientSession] = None,
+        cache_seconds: int = DEFAULT_CACHE_SECONDS,
     ) -> None:
         """Initialize."""
         # Since this library is built on an unofficial data source, let's be responsible
@@ -38,7 +43,7 @@ class Client:
             cache_seconds = DEFAULT_CACHE_SECONDS
 
         self._currently_retrying: bool = False
-        self._websession: ClientSession = websession
+        self._session: ClientSession = session
         self.dump: Callable = cached(key=DEFAULT_CACHE_KEY, ttl=cache_seconds)(
             self._dump
         )
@@ -51,25 +56,35 @@ class Client:
         self, method: str, url: str, *, headers: dict = None, params: dict = None
     ) -> dict:
         """Make an HTTP request."""
-        async with self._websession.request(
-            method, url, headers=headers, params=params
-        ) as resp:
-            try:
+        use_running_session = self._session and not self._session.closed
+
+        if use_running_session:
+            session = self._session
+        else:
+            session = ClientSession(timeout=ClientTimeout(total=DEFAULT_TIMEOUT))
+
+        try:
+            async with session.request(
+                method, url, headers=headers, params=params
+            ) as resp:
                 resp.raise_for_status()
                 data: dict = await resp.json(content_type=None)
                 self._currently_retrying = False
                 return data
-            except (client_exceptions.ClientError, json.decoder.JSONDecodeError) as err:
-                if self._currently_retrying:
-                    raise RequestError(f"Recurring request error from {url}: {err}")
+        except (ClientError, json.decoder.JSONDecodeError) as err:
+            if self._currently_retrying:
+                raise RequestError(f"Recurring request error from {url}: {err}")
 
-                self._currently_retrying = True
-                _LOGGER.info(
-                    "Error during request; waiting %s seconds before trying again",
-                    DEFAULT_RETRY_DELAY,
-                )
-                await asyncio.sleep(DEFAULT_RETRY_DELAY)
-                return await self.request(method, url, headers=headers, params=params)
+            self._currently_retrying = True
+            _LOGGER.info(
+                "Error during request; waiting %s seconds before trying again",
+                DEFAULT_RETRY_DELAY,
+            )
+            await asyncio.sleep(DEFAULT_RETRY_DELAY)
+            return await self.request(method, url, headers=headers, params=params)
+        finally:
+            if not use_running_session:
+                await session.close()
 
     async def within_radius(
         self,

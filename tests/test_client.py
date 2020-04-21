@@ -29,8 +29,8 @@ async def test_bad_request(aresponses):
     )
 
     with pytest.raises(RequestError):
-        async with aiohttp.ClientSession() as websession:
-            client = Client(websession)
+        async with aiohttp.ClientSession() as session:
+            client = Client(session=session)
             await client.request("get", "http://wwlln.net/bad_endpoint")
 
 
@@ -44,8 +44,8 @@ async def test_dump(aresponses, dump_response):
         aresponses.Response(text=json.dumps(dump_response), status=200),
     )
 
-    async with aiohttp.ClientSession() as websession:
-        client = Client(websession)
+    async with aiohttp.ClientSession() as session:
+        client = Client(session=session)
         data = await client.dump()
         assert len(data) == 6
 
@@ -53,8 +53,8 @@ async def test_dump(aresponses, dump_response):
 @pytest.mark.asyncio
 async def test_invalid_unit():
     """Test raising a proper exception when an incorrect radius unit is used."""
-    async with aiohttp.ClientSession() as websession:
-        client = Client(websession)
+    async with aiohttp.ClientSession() as session:
+        client = Client(session=session)
 
         with pytest.raises(ValueError):
             await client.within_radius(
@@ -65,8 +65,8 @@ async def test_invalid_unit():
 @pytest.mark.asyncio
 async def test_within_imperial():
     """Test retrieving the nearest strikes within a mile radius."""
-    async with aiohttp.ClientSession() as websession:
-        client = Client(websession)
+    async with aiohttp.ClientSession() as session:
+        client = Client(session=session)
         data = await client.within_radius(
             TEST_LATITUDE, TEST_LONGITUDE, TEST_RADIUS_IMPERIAL, unit="imperial"
         )
@@ -79,8 +79,8 @@ async def test_within_imperial():
 @pytest.mark.asyncio
 async def test_within_metric():
     """Test retrieving the nearest strikes within a kilometer radius."""
-    async with aiohttp.ClientSession() as websession:
-        client = Client(websession)
+    async with aiohttp.ClientSession() as session:
+        client = Client(session=session)
         data = await client.within_radius(
             TEST_LATITUDE, TEST_LONGITUDE, TEST_RADIUS_METRIC
         )
@@ -104,8 +104,8 @@ async def test_within_window(aresponses, dump_response):
         aresponses.Response(text=json.dumps(dump_response), status=200),
     )
 
-    async with aiohttp.ClientSession() as websession:
-        client = Client(websession)
+    async with aiohttp.ClientSession() as session:
+        client = Client(session=session)
         data = await client.within_radius(
             TEST_LATITUDE,
             TEST_LONGITUDE,
@@ -132,8 +132,8 @@ async def test_caching(aresponses, dump_response):
     cache = SimpleMemoryCache()
     await cache.delete(DEFAULT_CACHE_KEY)
 
-    async with aiohttp.ClientSession() as websession:
-        client = Client(websession)
+    async with aiohttp.ClientSession() as session:
+        client = Client(session=session)
 
         cache_exists = await cache.exists(DEFAULT_CACHE_KEY)
         assert not cache_exists
@@ -147,8 +147,8 @@ async def test_caching(aresponses, dump_response):
 @pytest.mark.asyncio
 async def test_invalid_cache_duration(caplog):
     """Test the cache duration floor."""
-    async with aiohttp.ClientSession() as websession:
-        _ = Client(websession, cache_seconds=1)
+    async with aiohttp.ClientSession() as session:
+        _ = Client(session=session, cache_seconds=1)
         logs = [
             l
             for l in [
@@ -184,8 +184,8 @@ async def test_invalid_json_retry_failure(aresponses):
     )
 
     with pytest.raises(RequestError):
-        async with aiohttp.ClientSession() as websession:
-            client = Client(websession)
+        async with aiohttp.ClientSession() as session:
+            client = Client(session=session)
             await client.dump()
 
 
@@ -212,7 +212,29 @@ async def test_invalid_json_retry_successful(aresponses, dump_response):
         aresponses.Response(text=json.dumps(dump_response), status=200),
     )
 
-    async with aiohttp.ClientSession() as websession:
-        client = Client(websession)
+    async with aiohttp.ClientSession() as session:
+        client = Client(session=session)
         data = await client.dump()
         assert len(data) == 6
+
+
+@pytest.mark.asyncio
+async def test_no_explicit_session(aresponses, dump_response):
+    """Test an API call with no explicitly-provided aiohttp ClientSession.
+
+    Note that we have to bust the cache before executing this test since all tests use
+    the same event loop.
+    """
+    cache = SimpleMemoryCache()
+    await cache.delete(DEFAULT_CACHE_KEY)
+
+    aresponses.add(
+        "wwlln.net",
+        "/new/map/data/current.json",
+        "get",
+        aresponses.Response(text=json.dumps(dump_response), status=200),
+    )
+
+    client = Client()
+    data = await client.dump()
+    assert len(data) == 6

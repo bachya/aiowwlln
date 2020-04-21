@@ -31,11 +31,9 @@ pip install aiowwlln
 
 # Usage
 
-`aiowwlln` starts within an
-[aiohttp](https://aiohttp.readthedocs.io/en/stable/) `ClientSession`:
-
 ```python
 import asyncio
+from datetime import datetime
 
 from aiohttp import ClientSession
 
@@ -43,15 +41,46 @@ from aiowwlln import Client
 
 
 async def main() -> None:
-    """Create the aiohttp session and run the example."""
-    async with ClientSession() as websession:
-        # YOUR CODE HERE
+    """Run!"""
+    client = aiowwlln.Client()
+
+    # Create a client and get all strike data – by default, data is cached for
+    # 60 seconds (be a responsible data citizen!):
+    client = Client(session)
+    await client.dump()
+
+    # If you want to increase the cache to 24 hours, go for it:
+    client = Client(session, cache_seconds=60*60*24)
+    await client.dump()
+
+    # Get strike data within a 50 km radius around a set of coordinates (note that
+    # the cache still applies):
+    await client.within_radius(
+        56.1621538, 92.2333561, 50, unit="metric"
+    )
+
+    # Get strike data within a 10 mile radius around a set of coordinates (note that
+    # the cache still applies):
+    await client.within_radius(
+        56.1621538, 92.2333561, 10, unit="imperial"
+    )
+
+    # Get strike data within a 50 km radius around a set of coordinates _and_
+    # within the last 10 minutes:
+    await client.within_radius(
+        56.1621538, 92.2333561, 50, unit="metric", window=timedelta(minutes=10)
+    )
 
 
-asyncio.get_event_loop().run_until_complete(main())
+asyncio.run(main())
 ```
 
-Create a client, initialize it, then get to it:
+By default, the library creates a new connection to the WWLLN with each coroutine. If
+you are calling a large number of coroutines (or merely want to squeeze out every second
+of runtime savings possible), an
+[`aiohttp`](https://github.com/aio-libs/aiohttp) `ClientSession` can be used for connection
+pooling:
+
 
 ```python
 import asyncio
@@ -63,39 +92,14 @@ from aiowwlln import Client
 
 
 async def main() -> None:
-    """Create the aiohttp session and run the example."""
-    async with ClientSession() as websession:
-        client = aiowwlln.Client(websession)
+    """Run!"""
+    async with ClientSession() as session:
+        client = aiowwlln.Client(session=session)
 
-        # Create a client and get all strike data – by default, data is cached for
-        # 60 seconds (be a responsible data citizen!):
-        client = Client(websession)
-        await client.dump()
-
-        # If you want to increase the cache to 24 hours, go for it:
-        client = Client(websession, cache_seconds=60*60*24)
-        await client.dump()
-
-        # Get strike data within a 50 km radius around a set of coordinates (note that
-        # the cache still applies):
-        await client.within_radius(
-            56.1621538, 92.2333561, 50, unit="metric"
-        )
-
-        # Get strike data within a 10 mile radius around a set of coordinates (note that
-        # the cache still applies):
-        await client.within_radius(
-            56.1621538, 92.2333561, 10, unit="imperial"
-        )
-
-        # Get strike data within a 50 km radius around a set of coordinates _and_
-        # within the last 10 minutes:
-        await client.within_radius(
-            56.1621538, 92.2333561, 50, unit="metric", window=timedelta(minutes=10)
-        )
+        # ...
 
 
-asyncio.get_event_loop().run_until_complete(main())
+asyncio.run(main())
 ```
 
 # Contributing
@@ -104,7 +108,7 @@ asyncio.get_event_loop().run_until_complete(main())
   or [initiate a discussion on one](https://github.com/bachya/aiowwlln/issues/new).
 2. [Fork the repository](https://github.com/bachya/aiowwlln/fork).
 3. (_optional, but highly recommended_) Create a virtual environment: `python3 -m venv .venv`
-4. (_optional, but highly recommended_) Enter the virtual environment: `source ./venv/bin/activate`
+4. (_optional, but highly recommended_) Enter the virtual environment: `source ./.venv/bin/activate`
 5. Install the dev environment: `script/setup`
 6. Code your new feature or bug fix.
 7. Write tests that cover your new functionality.

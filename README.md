@@ -8,6 +8,13 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/e78f0ba106cbe14bfcea/maintainability)](https://codeclimate.com/github/bachya/aiowwlln/maintainability)
 [![Say Thanks](https://img.shields.io/badge/SayThanks-!-1EAEDB.svg)](https://saythanks.io/to/bachya)
 
+# ARCHIVAL ANNOUNCEMENT
+
+As of 2020-05-21, WWLLN no longer provides this data source and this project is
+archived.
+
+---
+
 `aiowwlln` is a simple, `asyncio`-driven Python library for retrieving information on
 lightning strikes from
 [the World Wide Lightning Location Network (WWLLNN)](http://wwlln.net/).
